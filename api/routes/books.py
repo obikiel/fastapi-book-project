@@ -32,7 +32,6 @@ db.books = {
     ),
 }
 
-
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
     db.add_book(book)
@@ -41,12 +40,17 @@ async def create_book(book: Book):
     )
 
 
-@router.get(
-    "/", response_model=OrderedDict[int, Book], status_code=status.HTTP_200_OK
-)
-async def get_books() -> OrderedDict[int, Book]:
-    return db.get_books()
-
+@router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
+async def get_book(book_id: int) -> JSONResponse:
+    book = db.get_book(book_id)  # Assuming db.get_book(book_id) fetches the book
+    if not book:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content=book.model_dump()
+    )
+    
 
 @router.put("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
 async def update_book(book_id: int, book: Book) -> Book:
