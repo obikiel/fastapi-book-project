@@ -39,7 +39,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}  # Add your server IP in GitHub Secrets
           username: ${{ secrets.SSH_USER }}  # Add your SSH username in GitHub Secrets
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "build/*"
+          source: "./build"
           target: "/var/www/your-app/"
           strip_components: 1
             
