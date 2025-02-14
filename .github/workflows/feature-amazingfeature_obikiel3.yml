@@ -21,6 +21,13 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
           target: "/var/www/myapp"
+     
+      - name: Debug - List Files Before SCP
+        run: ls -laR
+      
+      - name: Find Build Files
+        run: find . -type f
+
 
       - name: Deploy with SCP
         uses: appleboy/scp-action@v0.1.4
