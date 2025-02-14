@@ -1,97 +1,34 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-name: Build and deploy Python app to Azure Web App - obikiel3
+name: Deploy to NGINX Server
 
 on:
   push:
     branches:
-      - feature/AmazingFeature
-  workflow_dispatch:
+      - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read # This is required for actions/checkout
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests with pytest
-        run: pytest
-
-      - name: Fail if tests fail
-        if: failure()
-        run: exit 1
-
-      - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
-
-      - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-app
-          path: |
-            release.zip
-          retention-days: 1 # Optional: Limits how long artifacts are stored
-
   deploy:
     runs-on: ubuntu-latest
-    needs: build  # Ensures deployment runs only after build completes successfully
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
+      - name: Deploy files to server via SSH
+        uses: appleboy/scp-action@v0.1.4
         with:
-          name: python-app
-          path: ./artifact
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: "/var/www/myapp"
 
-      - name: Unzip artifact if needed
-        run: |
-          if [ -f ./artifact/release.zip ]; then
-            unzip ./artifact/release.zip -d ./artifact
-          fi
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
+      - name: Restart NGINX
+        uses: appleboy/ssh-action@v0.1.6
         with:
-          app-name: 'obikiel3'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A0161943D0B1451FAEB0AA9B592E5159 }}
-          package: ./artifact
-
-
-      # - name: Log in to Azure Container Registry
-      #   run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}
-
-      # - name: Build and Push Docker Image
-      #   run: |
-      #     docker build -t ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/fastapi-nginx:latest .
-      #     docker push ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/fastapi-nginx:latest
-
-      # - name: Deploy to Azure App Service
-      #   run: |
-      #     az webapp config container set \
-      #       --name ${{ secrets.AZURE_APP_NAME }} \
-      #       --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-      #       --docker-custom-image-name ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/fastapi-nginx:latest \
-      #       --docker-registry-server-url https://${{ secrets.AZURE_ACR_NAME }}.azurecr.io \
-      #       --docker-registry-server-user ${{ secrets.AZURE_ACR_USERNAME }} \
-      #       --docker-registry-server-password ${{ secrets.AZURE_ACR_PASSWORD }}
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo systemctl restart nginx
 
       
