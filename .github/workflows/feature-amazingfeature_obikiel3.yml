@@ -51,29 +51,33 @@ jobs:
             release.zip
             !venv/
 
-  deploy:
-    runs-on: ubuntu-latest
+ deploy:
+  runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: python-app
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: python-app
+        path: ./artifact
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
+    - name: Unzip artifact if needed
+      run: |
+        if [ -f ./artifact/release.zip ]; then
+          unzip ./artifact/release.zip -d ./artifact
+        fi
 
-      
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: 'obikiel3'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A0161943D0B1451FAEB0AA9B592E5159 }}
+    - name: Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: 'obikiel3'
+        slot-name: 'Production'
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A0161943D0B1451FAEB0AA9B592E5159 }}
+        package: ./artifact
+
 
       # - name: Log in to Azure Container Registry
       #   run: az acr login --name ${{ secrets.AZURE_ACR_NAME }}
