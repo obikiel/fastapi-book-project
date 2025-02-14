@@ -22,13 +22,13 @@ jobs:
           source: "."
           target: "/var/www/myapp"
 
-      - name: Restart NGINX
-        uses: appleboy/ssh-action@v0.1.6
+      - name: Deploy with SCP
+        uses: appleboy/scp-action@v0.1.4
         with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SERVER_USER }}
+          host: ${{ secrets.SSH_HOST }}  # Add your server IP in GitHub Secrets
+          username: ${{ secrets.SSH_USER }}  # Add your SSH username in GitHub Secrets
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            sudo systemctl restart nginx
-
-      
+          source: "your-build-folder/*"
+          target: "/var/www/your-app/"
+          strip_components: 1
+            
