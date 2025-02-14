@@ -28,6 +28,10 @@ jobs:
       - name: Find Build Files
         run: find . -type f
 
+      - name: Build application
+        run: |
+          mkdir -p build
+
 
       - name: Deploy with SCP
         uses: appleboy/scp-action@v0.1.4
@@ -35,7 +39,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}  # Add your server IP in GitHub Secrets
           username: ${{ secrets.SSH_USER }}  # Add your SSH username in GitHub Secrets
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "dist/*"
+          source: "build/*"
           target: "/var/www/your-app/"
           strip_components: 1
             
