@@ -13,7 +13,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy files to server via SSH
+      - name: Debug - List Files Before Deployment
+        run: |
+          echo "Listing all files..."
+          ls -laR
+
+      - name: Find Build Files
+        run: find . -type f
+
+      - name: Prepare Build Directory
+        run: mkdir -p build
+
+      - name: Deploy Files to Server via SCP
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -21,25 +32,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "."
           target: "/var/www/myapp"
-     
-      - name: Debug - List Files Before SCP
-        run: ls -laR
-      
-      - name: Find Build Files
-        run: find . -type f
 
-      - name: Build application
+      - name: Restart Nginx (Optional)
         run: |
-          mkdir -p build
-
-
-      - name: Deploy with SCP
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.SSH_HOST }}  # Add your server IP in GitHub Secrets
-          username: ${{ secrets.SSH_USER }}  # Add your SSH username in GitHub Secrets
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./build"
-          target: "/var/www/your-app/"
-          strip_components: 1
-            
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          sudo systemctl restart nginx
+          EOF
