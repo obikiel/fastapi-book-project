@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
@@ -28,7 +29,7 @@ jobs:
       - name: Run tests
         run: |
           source venv/bin/activate
-          pytest tests/ --maxfail=3 --disable-warnings -v
+          pytest tests/ --maxfail=3 --disable-warnings -v || exit 1
 
       - name: Debug - List Files Before Deployment
         run: |
